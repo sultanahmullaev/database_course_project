@@ -1,0 +1,81 @@
+create table clients(
+    id varchar(20) primary key,
+    f_name varchar(50) not null,
+    l_name varchar(50),
+    phone_number numeric not null,
+    country varchar(50) not null,
+    city varchar(50) not null,
+    district varchar(50) not null,
+    street varchar(50) not null,
+    building numeric not null,
+    apartment numeric not null,
+    additional_info varchar(255),
+    check (country in ('Kazakhstan', 'Kyrgyzstan', 'Russia', 'China', 'Uzbekistan'))
+);
+
+create table orders(
+    order_id varchar(40) primary key,
+    track_code varchar(30) references package_info(track_code),
+    customer_id varchar(20) references clients(id),
+    recipient_id varchar(20) references clients(id),
+    delivery_type varchar(50),
+    delivery_date date,
+    dept_id numeric references departments(dept_id),
+    payment_method varchar(20) not null,
+    date varchar default to_char(timezone('GMT+6', now()), 'dd.mm.yyyy hh24:mi:ss'),
+    total_cost numeric default null,
+    check (delivery_type in ('In city', 'Out of city', 'International')),
+    check (delivery_date>current_date),
+    check (payment_method in ('Prepaid', 'Cash', 'Credit card', 'Contract', 'Recipient'))
+);
+
+create table contracts(
+    contract_number numeric primary key,
+    customer_id varchar(20) references clients(id),
+    account_number varchar(30) references accounts(id),
+    expire_date date,
+    check (expire_date>current_date)
+);
+
+create table accounts(
+    id varchar(30) primary key,
+    balance numeric,
+    owed numeric
+);
+
+create table departments(
+    dept_id numeric primary key,
+    country varchar(255),
+    city varchar(255),
+    district varchar(255),
+    street varchar(255),
+    building numeric
+);
+
+create table track_info(
+    track_code varchar(30) references package_info(track_code),
+    dept_id numeric references departments(dept_id),
+    date varchar default to_char(timezone('GMT+6', now()), 'dd.mm.yyyy hh24:mi:ss')
+);
+
+create table package_info(
+    track_code varchar(30) primary key,
+    package_type varchar(20),
+    package_weight numeric(10, 3),
+    delivery_period numeric,
+    check (package_type in ('flat envelope', 'small box', 'large box'))
+);
+
+create table couriers(
+    id numeric primary key,
+    f_name varchar(50) not null ,
+    l_name varchar(50) not null ,
+    phone_number numeric not null
+);
+
+create table courier_transport(
+    courier_id numeric references couriers(id),
+    transport_type varchar(20) not null,
+    transport_id varchar(20) not null,
+    check ( transport_type in ('Car', 'Airplane', 'Walk', 'Ship') )
+);
